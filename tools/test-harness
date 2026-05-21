@@ -114,6 +114,12 @@ test_new_lesson_rejects_bad_names() {
   if tools/new-lesson "1-only-one-digit" 2>/dev/null; then
     fail "expected non-zero exit for single-digit lesson number"
   fi
+  if tools/new-lesson "05-trailing-" 2>/dev/null; then
+    fail "expected non-zero exit for trailing dash"
+  fi
+  if tools/new-lesson "05--double-dash" 2>/dev/null; then
+    fail "expected non-zero exit for double dash"
+  fi
 }
 
 test_new_lesson_refuses_to_overwrite() {

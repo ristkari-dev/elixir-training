@@ -25,7 +25,7 @@ EOF
 NAME="$1"
 
 # Validate format: NN-slug-with-dashes (NN = two digits)
-if [[ ! "$NAME" =~ ^[0-9]{2}-[a-z][a-z0-9-]*$ ]]; then
+if [[ ! "$NAME" =~ ^[0-9]{2}-[a-z][a-z0-9]*(-[a-z0-9]+)*$ ]]; then
   echo "ERROR: lesson name must match NN-slug-with-dashes (two digits, kebab-case slug)" >&2
   usage
 fi
