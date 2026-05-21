@@ -77,4 +77,50 @@ test_harness_is_runnable() {
   true
 }
 
+test_new_lesson_creates_directory() {
+  local name="99-harness-smoke"
+  rm -rf "lessons/$name"
+  tools/new-lesson "$name" >/dev/null
+  assert_dir "lessons/$name"
+  assert_file "lessons/$name/README.md"
+  assert_file "lessons/$name/HINTS.md"
+  assert_file "lessons/$name/slides/index.html"
+  assert_file "lessons/$name/slides/slides.md"
+  assert_file "lessons/$name/exercises/mix.exs"
+  assert_file "lessons/$name/solutions/mix.exs"
+  rm -rf "lessons/$name"
+}
+
+test_new_lesson_substitutes_placeholders() {
+  local name="99-harness-smoke"
+  rm -rf "lessons/$name"
+  tools/new-lesson "$name" >/dev/null
+  assert_grep "Lesson 99: Harness Smoke" "lessons/$name/README.md"
+  assert_grep "app: :lesson_99_harness_smoke" "lessons/$name/exercises/mix.exs"
+  assert_grep "Lesson99HarnessSmoke.MixProject" "lessons/$name/exercises/mix.exs"
+  ! grep -q "{{" "lessons/$name/README.md" || fail "unsubstituted placeholder in README"
+  ! grep -q "{{" "lessons/$name/exercises/mix.exs" || fail "unsubstituted placeholder in exercises/mix.exs"
+  ! grep -q "{{" "lessons/$name/slides/index.html" || fail "unsubstituted placeholder in slides/index.html"
+  rm -rf "lessons/$name"
+}
+
+test_new_lesson_rejects_bad_names() {
+  if tools/new-lesson "BadName" 2>/dev/null; then
+    fail "expected non-zero exit for non-conforming name"
+  fi
+  if tools/new-lesson "1-only-one-digit" 2>/dev/null; then
+    fail "expected non-zero exit for single-digit lesson number"
+  fi
+}
+
+test_new_lesson_refuses_to_overwrite() {
+  local name="99-harness-smoke"
+  rm -rf "lessons/$name"
+  tools/new-lesson "$name" >/dev/null
+  if tools/new-lesson "$name" 2>/dev/null; then
+    fail "expected non-zero exit when lesson directory already exists"
+  fi
+  rm -rf "lessons/$name"
+}
+
 main "$@"
