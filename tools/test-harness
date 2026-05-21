@@ -187,4 +187,16 @@ EOF
   rm -rf "lessons/$name"
 }
 
+test_lint_all_passes_on_template_output() {
+  local name="99-harness-lint"
+  rm -rf "lessons/$name"
+  tools/new-lesson "$name" >/dev/null
+  if ! tools/lint-all >/tmp/lint.out 2>&1; then
+    cat /tmp/lint.out >&2
+    rm -rf "lessons/$name"
+    fail "tools/lint-all failed on freshly scaffolded lesson"
+  fi
+  rm -rf "lessons/$name"
+}
+
 main "$@"
