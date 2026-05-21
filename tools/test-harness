@@ -132,4 +132,16 @@ test_new_lesson_refuses_to_overwrite() {
   rm -rf "lessons/$name"
 }
 
+test_slides_dev_rejects_missing_lesson() {
+  if tools/slides-dev "99-does-not-exist" 2>/dev/null; then
+    fail "expected non-zero exit when lesson dir missing"
+  fi
+}
+
+test_slides_dev_rejects_no_arg() {
+  if tools/slides-dev 2>/dev/null; then
+    fail "expected non-zero exit when no lesson name given"
+  fi
+}
+
 main "$@"

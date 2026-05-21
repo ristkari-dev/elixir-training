@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# tools/slides-dev — serve a lesson's slide deck on http://localhost:8000
+#
+# Usage:
+#   tools/slides-dev NN-slug
+#
+# Stops with Ctrl-C.
+
+set -euo pipefail
+
+usage() {
+  echo "Usage: tools/slides-dev NN-slug" >&2
+  exit 1
+}
+
+[[ $# -eq 1 ]] || usage
+
+NAME="$1"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+LESSON_DIR="$REPO_ROOT/lessons/$NAME"
+
+if [[ ! -d "$LESSON_DIR" ]]; then
+  echo "ERROR: lesson directory not found: lessons/$NAME" >&2
+  exit 1
+fi
+
+if [[ ! -f "$LESSON_DIR/slides/index.html" ]]; then
+  echo "ERROR: lesson is missing slides/index.html: lessons/$NAME" >&2
+  exit 1
+fi
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "ERROR: python3 is required to serve slides. Install Python 3 and retry." >&2
+  exit 1
+fi
+
+echo "Serving slides for lessons/$NAME on http://localhost:8000/lessons/$NAME/slides/"
+echo "Stop with Ctrl-C."
+cd "$REPO_ROOT"
+exec python3 -m http.server 8000
