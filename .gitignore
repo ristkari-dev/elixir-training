@@ -1,0 +1,29 @@
+# Mix
+/lessons/**/_build/
+/lessons/**/deps/
+/lessons/**/cover/
+/lessons/**/doc/
+/lessons/**/.fetch
+/lessons/**/erl_crash.dump
+/lessons/**/*.ez
+/lessons/**/*.beam
+/lessons/**/.elixir_ls/
+
+# Phoenix
+/lessons/**/priv/static/assets/
+/lessons/**/priv/static/cache_manifest.json
+/lessons/**/.phx.gen.priv/
+/lessons/**/node_modules/
+
+# Postgres data (docker-compose volume)
+/.postgres-data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
