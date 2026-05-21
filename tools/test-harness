@@ -199,4 +199,34 @@ test_lint_all_passes_on_template_output() {
   rm -rf "lessons/$name"
 }
 
+test_build_index_produces_dist() {
+  # With no published lessons, build_index still produces dist/index.html
+  # listing all 41 lessons as "future" placeholders.
+  rm -rf dist
+  elixir tools/build_index/build_index.exs \
+    --lessons lessons --shared shared/reveal --out dist >/tmp/build-index.out 2>&1 \
+    || { cat /tmp/build-index.out >&2; fail "build_index exited non-zero"; }
+  assert_file "dist/index.html"
+  assert_dir "dist/shared/reveal"
+  assert_grep "Elixir Training" "dist/index.html"
+  # All 41 lessons should appear as future (none scaffolded)
+  local count
+  count=$(grep -c 'class="lesson future"' dist/index.html)
+  [[ "$count" -eq 41 ]] || fail "expected 41 future lessons, got $count"
+  rm -rf dist
+}
+
+test_build_index_marks_published_lessons() {
+  # Scaffold 00-setup (which IS in the master list) and confirm it lights up.
+  local name="00-setup"
+  rm -rf "lessons/$name" dist
+  tools/new-lesson "$name" >/dev/null
+  elixir tools/build_index/build_index.exs \
+    --lessons lessons --shared shared/reveal --out dist >/tmp/build-index.out 2>&1 \
+    || { cat /tmp/build-index.out >&2; rm -rf "lessons/$name" dist; fail "build_index exited non-zero"; }
+  assert_file "dist/lessons/$name/slides/index.html"
+  assert_grep "lessons/$name/slides/" "dist/index.html"
+  rm -rf "lessons/$name" dist
+}
+
 main "$@"

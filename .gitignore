@@ -18,6 +18,9 @@
 # Postgres data (docker-compose volume)
 /.postgres-data/
 
+# Static slide site output from `make slides-build`
+/dist/
+
 # OS
 .DS_Store
 Thumbs.db
