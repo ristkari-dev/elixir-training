@@ -144,4 +144,47 @@ test_slides_dev_rejects_no_arg() {
   fi
 }
 
+test_run_all_tests_passes_with_scaffolded_lesson() {
+  local name="99-harness-runall"
+  rm -rf "lessons/$name"
+  tools/new-lesson "$name" >/dev/null
+  if ! tools/run-all-tests >/tmp/run-all.out 2>&1; then
+    cat /tmp/run-all.out >&2
+    rm -rf "lessons/$name"
+    fail "tools/run-all-tests failed on freshly scaffolded lesson"
+  fi
+  rm -rf "lessons/$name"
+}
+
+test_check_solutions_passes_with_scaffolded_lesson() {
+  local name="99-harness-cs"
+  rm -rf "lessons/$name"
+  tools/new-lesson "$name" >/dev/null
+  if ! tools/check-solutions >/tmp/check-sol.out 2>&1; then
+    cat /tmp/check-sol.out >&2
+    rm -rf "lessons/$name"
+    fail "tools/check-solutions failed on freshly scaffolded lesson"
+  fi
+  rm -rf "lessons/$name"
+}
+
+test_check_solutions_fails_on_broken_solution() {
+  local name="99-harness-broken"
+  rm -rf "lessons/$name"
+  tools/new-lesson "$name" >/dev/null
+  cat > "lessons/$name/solutions/test/broken_test.exs" <<'EOF'
+defmodule BrokenTest do
+  use ExUnit.Case
+  test "intentionally fails" do
+    assert 1 == 2
+  end
+end
+EOF
+  if tools/check-solutions >/tmp/check-sol-broken.out 2>&1; then
+    rm -rf "lessons/$name"
+    fail "tools/check-solutions should have failed on a broken solution"
+  fi
+  rm -rf "lessons/$name"
+}
+
 main "$@"

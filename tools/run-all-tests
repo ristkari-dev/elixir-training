@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# tools/run-all-tests — run `mix test` in every lessons/NN-slug/exercises/.
+# Exits non-zero if any lesson's tests error out (compile failures, etc.).
+# Note: this DOES NOT include @tag :pending tests, which are deliberately
+# failing in `exercises/`. Use `mix test --include pending` inside a single
+# lesson to see those.
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT"
+
+shopt -s nullglob
+
+FAIL=0
+RAN=0
+for dir in lessons/*/exercises; do
+  [[ -d "$dir" ]] || continue
+  [[ -f "$dir/mix.exs" ]] || continue
+  echo "=== $dir ==="
+  if ! ( cd "$dir" && mix deps.get && mix test ); then
+    echo "FAILED: $dir" >&2
+    FAIL=1
+  fi
+  RAN=$((RAN + 1))
+done
+
+if (( RAN == 0 )); then
+  echo "No exercise suites found under lessons/*/exercises/."
+fi
+
+if (( FAIL == 1 )); then
+  echo "One or more lesson exercise suites failed."
+  exit 1
+fi
+
+echo "All exercise suites passed (excluding @tag :pending)."
