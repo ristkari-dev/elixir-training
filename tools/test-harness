@@ -18,7 +18,10 @@ FAILED_TESTS=()
 
 fail() {
   echo "  FAIL: $*" >&2
-  return 1
+  # exit (not return) so a failing assertion actually aborts the test.
+  # Tests run inside `(set -e; "$name")` subshells, so exit kills only
+  # the subshell — the parent harness keeps running.
+  exit 1
 }
 
 assert_file() {
