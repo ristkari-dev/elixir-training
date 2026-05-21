@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# tools/test-harness — runs all harness self-tests.
+# Each test is a bash function prefixed `test_`. Functions are auto-discovered.
+# A test fails by returning non-zero. Use `fail "message"` to fail explicitly.
+#
+# Usage:
+#   tools/test-harness            # run all tests
+#   tools/test-harness test_name  # run one test
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT"
+
+PASS=0
+FAIL=0
+FAILED_TESTS=()
+
+fail() {
+  echo "  FAIL: $*" >&2
+  return 1
+}
+
+assert_file() {
+  [[ -f "$1" ]] || fail "expected file: $1"
+}
+
+assert_dir() {
+  [[ -d "$1" ]] || fail "expected dir: $1"
+}
+
+assert_grep() {
+  local pattern="$1"
+  local file="$2"
+  grep -q "$pattern" "$file" || fail "expected to find '$pattern' in $file"
+}
+
+run_test() {
+  local name="$1"
+  printf '%s ... ' "$name"
+  if (set -e; "$name") 2>/tmp/test-harness.err; then
+    echo "ok"
+    PASS=$((PASS + 1))
+  else
+    echo "FAILED"
+    if [[ -s /tmp/test-harness.err ]]; then
+      sed 's/^/    /' /tmp/test-harness.err
+    fi
+    FAIL=$((FAIL + 1))
+    FAILED_TESTS+=("$name")
+  fi
+}
+
+# Auto-discover tests defined as `test_*` functions in this file
+discover_tests() {
+  grep -oE '^test_[a-zA-Z0-9_]+' "$0" | sort -u
+}
+
+main() {
+  if [[ $# -gt 0 ]]; then
+    for name in "$@"; do run_test "$name"; done
+  else
+    while read -r name; do run_test "$name"; done < <(discover_tests)
+  fi
+  echo
+  echo "Passed: $PASS, Failed: $FAIL"
+  if (( FAIL > 0 )); then
+    echo "Failed tests: ${FAILED_TESTS[*]}"
+    exit 1
+  fi
+}
+
+# ---------- Tests below this line ----------
+
+test_harness_is_runnable() {
+  # Sanity: the harness itself loads.
+  true
+}
+
+main "$@"
