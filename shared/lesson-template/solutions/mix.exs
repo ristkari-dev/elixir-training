@@ -1,3 +1,8 @@
+# Mix project skeleton for a lesson. `excoveralls` is included in every
+# lesson's dependencies for consistency — the testing-deep-dive lesson
+# (lesson 34) and onward use coverage reports; earlier lessons ignore it
+# and the dep adds negligible compile time.
+
 defmodule {{MIX_APP_NAME_CAMEL}}.MixProject do
   use Mix.Project
 
