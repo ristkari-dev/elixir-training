@@ -109,14 +109,19 @@ erlang 27.2
 - [ ] **Step 3: Create `.formatter.exs`**
 
 ```elixir
-# Shared formatter config for every lesson's Mix project.
-# Lesson formatter files do `import_deps: [:phoenix, :phoenix_live_view]` etc.
-# as needed and `import_config "../../../.formatter.exs"` to inherit these.
+# Shared formatter config for the repo. Used:
+#   1. When `mix format` runs from the repo root, it formats every lesson's
+#      Elixir files via the recursive `lessons/**/` globs below.
+#   2. As the source of truth for `line_length` and `locals_without_parens`;
+#      lesson-level `.formatter.exs` files duplicate these values rather than
+#      inheriting, because `.formatter.exs` files do not share configuration
+#      in Mix (see `mix help format`).
 
 [
   inputs: [
     "{mix,.formatter}.exs",
-    "{config,lib,test}/**/*.{ex,exs}"
+    "lessons/**/{mix,.formatter}.exs",
+    "lessons/**/{config,lib,test}/**/*.{ex,exs}"
   ],
   line_length: 98,
   locals_without_parens: []
@@ -474,12 +479,19 @@ end
 `shared/lesson-template/exercises/.formatter.exs`:
 
 ```elixir
+# Self-contained formatter config for this lesson's Mix project. Mix does
+# not share `.formatter.exs` between projects, so the style rules are
+# duplicated here from the repo-root `.formatter.exs` (the source of truth).
+# Update both files together if you change a rule.
+
 [
-  inputs: ["{mix,.formatter}.exs", "{config,lib,test}/**/*.{ex,exs}"]
+  inputs: ["{mix,.formatter}.exs", "{config,lib,test}/**/*.{ex,exs}"],
+  line_length: 98,
+  locals_without_parens: []
 ]
 ```
 
-(Each lesson has its own minimal formatter file. The repo-root `.formatter.exs` is the source of truth for style; lesson files mirror its rules. Engineers can extend per-lesson if a lesson needs e.g. `import_deps: [:phoenix]`.)
+(Each lesson has its own self-contained formatter file. Lesson-level files cannot inherit from the repo-root `.formatter.exs` because Mix does not share formatter configuration between projects — see `mix help format`. The repo-root file is the source of truth; lesson files duplicate the rules. Engineers can extend per-lesson if a lesson needs e.g. `import_deps: [:phoenix]`.)
 
 - [ ] **Step 7: Create `exercises/test/test_helper.exs`**
 

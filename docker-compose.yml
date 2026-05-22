@@ -1,0 +1,21 @@
+# Postgres for any lesson that needs a DB.
+# Lessons that depend on this start at lesson 26 (phx.gen.auth).
+# Usage: docker compose up -d postgres
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: elixir_training_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

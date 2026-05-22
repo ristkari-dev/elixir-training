@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# tools/lint-all — formatter check (mix format --check-formatted) across every
+# Mix project under lessons/, plus Credo on projects that declare it as a dep.
+#
+# Credo is opt-in per lesson — a lesson activates it by adding {:credo, ...}
+# to its mix.exs deps. This script runs `mix credo` only if the dep is
+# declared (lessons from lesson 34 onward, per the course design).
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT"
+
+shopt -s nullglob
+
+FAIL=0
+RAN=0
+for dir in lessons/*/exercises lessons/*/solutions; do
+  [[ -d "$dir" ]] || continue
+  [[ -f "$dir/mix.exs" ]] || continue
+  echo "=== $dir ==="
+
+  if ! ( cd "$dir" && mix deps.get && mix format --check-formatted ); then
+    echo "FAILED format check: $dir" >&2
+    FAIL=1
+  fi
+
+  if grep -q ':credo,' "$dir/mix.exs"; then
+    if ! ( cd "$dir" && mix credo --strict ); then
+      echo "FAILED credo: $dir" >&2
+      FAIL=1
+    fi
+  fi
+
+  RAN=$((RAN + 1))
+done
+
+if (( RAN == 0 )); then
+  echo "No Mix projects found under lessons/."
+fi
+
+if (( FAIL == 1 )); then
+  echo "Lint failures present."
+  exit 1
+fi
+
+echo "Lint clean."

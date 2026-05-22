@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# tools/new-lesson — scaffold a new lesson from shared/lesson-template/
+#
+# Usage:
+#   tools/new-lesson NN-slug-with-dashes
+#
+# Example:
+#   tools/new-lesson 05-recursion
+
+set -euo pipefail
+
+usage() {
+  cat >&2 <<EOF
+Usage: tools/new-lesson NN-slug-with-dashes
+
+NN must be two digits. slug must be lowercase kebab-case (letters, digits, dashes).
+
+Example: tools/new-lesson 05-recursion
+EOF
+  exit 1
+}
+
+[[ $# -eq 1 ]] || usage
+
+NAME="$1"
+
+# Validate format: NN-slug-with-dashes (NN = two digits)
+if [[ ! "$NAME" =~ ^[0-9]{2}-[a-z][a-z0-9]*(-[a-z0-9]+)*$ ]]; then
+  echo "ERROR: lesson name must match NN-slug-with-dashes (two digits, kebab-case slug)" >&2
+  usage
+fi
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+TEMPLATE_DIR="$REPO_ROOT/shared/lesson-template"
+DEST_DIR="$REPO_ROOT/lessons/$NAME"
+
+if [[ -e "$DEST_DIR" ]]; then
+  echo "ERROR: $DEST_DIR already exists" >&2
+  exit 1
+fi
+
+if [[ ! -d "$TEMPLATE_DIR" ]]; then
+  echo "ERROR: template directory missing: $TEMPLATE_DIR" >&2
+  exit 1
+fi
+
+# Derive placeholder values
+LESSON_NUMBER="${NAME%%-*}"                   # "05"
+LESSON_SLUG_DASH="${NAME#*-}"                 # "recursion" or "pattern-matching"
+LESSON_SLUG_UNDER="${LESSON_SLUG_DASH//-/_}"  # "pattern_matching"
+MIX_APP_NAME="lesson_${LESSON_NUMBER}_${LESSON_SLUG_UNDER}"
+
+# Title-case the slug: "pattern-matching" -> "Pattern Matching"
+LESSON_TITLE=$(echo "$LESSON_SLUG_DASH" | awk -F'-' '{
+  for (i = 1; i <= NF; i++) {
+    $i = toupper(substr($i, 1, 1)) substr($i, 2)
+  }
+  print
+}' OFS=' ')
+
+# CamelCase the mix app name: "lesson_05_pattern_matching" -> "Lesson05PatternMatching"
+MIX_APP_NAME_CAMEL=$(echo "$MIX_APP_NAME" | awk -F'_' '{
+  out = ""
+  for (i = 1; i <= NF; i++) {
+    out = out toupper(substr($i, 1, 1)) substr($i, 2)
+  }
+  print out
+}')
+
+mkdir -p "$DEST_DIR"
+cp -R "$TEMPLATE_DIR/." "$DEST_DIR/"
+
+# Substitute placeholders in every text file under the new lesson
+find "$DEST_DIR" -type f \( -name "*.md" -o -name "*.html" -o -name "*.exs" -o -name ".formatter.exs" \) -print0 \
+  | while IFS= read -r -d '' f; do
+    # Use a temp file to stay portable across BSD/GNU sed
+    sed \
+      -e "s/{{LESSON_NUMBER}}/$LESSON_NUMBER/g" \
+      -e "s/{{LESSON_SLUG_DASH}}/$LESSON_SLUG_DASH/g" \
+      -e "s/{{LESSON_SLUG_UNDER}}/$LESSON_SLUG_UNDER/g" \
+      -e "s/{{LESSON_TITLE}}/$LESSON_TITLE/g" \
+      -e "s/{{MIX_APP_NAME}}/$MIX_APP_NAME/g" \
+      -e "s/{{MIX_APP_NAME_CAMEL}}/$MIX_APP_NAME_CAMEL/g" \
+      "$f" > "$f.tmp"
+    mv "$f.tmp" "$f"
+  done
+
+echo "Created lessons/$NAME"

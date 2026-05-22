@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: erlef/setup-beam@v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - name: Cache Mix archives + Hex registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.hex
+            ~/.mix
+          key: ${{ runner.os }}-mix-${{ hashFiles('.tool-versions') }}
+          restore-keys: ${{ runner.os }}-mix-
+
+      - name: Harness self-tests (tooling smoke)
+        run: make ci-smoke
+
+      - name: Lint (mix format + credo)
+        run: make lint
+
+      - name: Run lesson exercise tests
+        run: make test
+
+      - name: Run lesson solution tests
+        run: make solutions-test
+
+      - name: Build static slides site
+        run: make slides-build
+
+      - name: Verify dist contents
+        run: |
+          test -f dist/index.html
+          grep -q "Elixir Training" dist/index.html

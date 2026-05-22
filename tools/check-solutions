@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# tools/check-solutions — run `mix test` in every lessons/NN-slug/solutions/.
+# Solutions MUST pass with zero failures (no @tag :pending exclusion).
+# This is the CI safety net that catches solution rot.
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT"
+
+shopt -s nullglob
+
+FAIL=0
+RAN=0
+for dir in lessons/*/solutions; do
+  [[ -d "$dir" ]] || continue
+  [[ -f "$dir/mix.exs" ]] || continue
+  echo "=== $dir ==="
+  if ! ( cd "$dir" && mix deps.get && mix test --include pending ); then
+    echo "FAILED: $dir" >&2
+    FAIL=1
+  fi
+  RAN=$((RAN + 1))
+done
+
+if (( RAN == 0 )); then
+  echo "No solution suites found under lessons/*/solutions/."
+fi
+
+if (( FAIL == 1 )); then
+  echo "One or more solutions failed. Solutions must be green."
+  exit 1
+fi
+
+echo "All solutions pass."

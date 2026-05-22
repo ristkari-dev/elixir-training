@@ -1,0 +1,232 @@
+#!/usr/bin/env bash
+# tools/test-harness — runs all harness self-tests.
+# Each test is a bash function prefixed `test_`. Functions are auto-discovered.
+# A test fails by returning non-zero. Use `fail "message"` to fail explicitly.
+#
+# Usage:
+#   tools/test-harness            # run all tests
+#   tools/test-harness test_name  # run one test
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT"
+
+PASS=0
+FAIL=0
+FAILED_TESTS=()
+
+fail() {
+  echo "  FAIL: $*" >&2
+  # exit (not return) so a failing assertion actually aborts the test.
+  # Tests run inside `(set -e; "$name")` subshells, so exit kills only
+  # the subshell — the parent harness keeps running.
+  exit 1
+}
+
+assert_file() {
+  [[ -f "$1" ]] || fail "expected file: $1"
+}
+
+assert_dir() {
+  [[ -d "$1" ]] || fail "expected dir: $1"
+}
+
+assert_grep() {
+  local pattern="$1"
+  local file="$2"
+  grep -q "$pattern" "$file" || fail "expected to find '$pattern' in $file"
+}
+
+run_test() {
+  local name="$1"
+  printf '%s ... ' "$name"
+  if (set -e; "$name") 2>/tmp/test-harness.err; then
+    echo "ok"
+    PASS=$((PASS + 1))
+  else
+    echo "FAILED"
+    if [[ -s /tmp/test-harness.err ]]; then
+      sed 's/^/    /' /tmp/test-harness.err
+    fi
+    FAIL=$((FAIL + 1))
+    FAILED_TESTS+=("$name")
+  fi
+}
+
+# Auto-discover tests defined as `test_*` functions in this file
+discover_tests() {
+  grep -oE '^test_[a-zA-Z0-9_]+' "$0" | sort -u
+}
+
+main() {
+  if [[ $# -gt 0 ]]; then
+    for name in "$@"; do run_test "$name"; done
+  else
+    while read -r name; do run_test "$name"; done < <(discover_tests)
+  fi
+  echo
+  echo "Passed: $PASS, Failed: $FAIL"
+  if (( FAIL > 0 )); then
+    echo "Failed tests: ${FAILED_TESTS[*]}"
+    exit 1
+  fi
+}
+
+# ---------- Tests below this line ----------
+
+test_harness_is_runnable() {
+  # Sanity: the harness itself loads.
+  true
+}
+
+test_new_lesson_creates_directory() {
+  local name="99-harness-smoke"
+  rm -rf "lessons/$name"
+  tools/new-lesson "$name" >/dev/null
+  assert_dir "lessons/$name"
+  assert_file "lessons/$name/README.md"
+  assert_file "lessons/$name/HINTS.md"
+  assert_file "lessons/$name/slides/index.html"
+  assert_file "lessons/$name/slides/slides.md"
+  assert_file "lessons/$name/exercises/mix.exs"
+  assert_file "lessons/$name/solutions/mix.exs"
+  rm -rf "lessons/$name"
+}
+
+test_new_lesson_substitutes_placeholders() {
+  local name="99-harness-smoke"
+  rm -rf "lessons/$name"
+  tools/new-lesson "$name" >/dev/null
+  assert_grep "Lesson 99: Harness Smoke" "lessons/$name/README.md"
+  assert_grep "app: :lesson_99_harness_smoke" "lessons/$name/exercises/mix.exs"
+  assert_grep "Lesson99HarnessSmoke.MixProject" "lessons/$name/exercises/mix.exs"
+  ! grep -q "{{" "lessons/$name/README.md" || fail "unsubstituted placeholder in README"
+  ! grep -q "{{" "lessons/$name/exercises/mix.exs" || fail "unsubstituted placeholder in exercises/mix.exs"
+  ! grep -q "{{" "lessons/$name/slides/index.html" || fail "unsubstituted placeholder in slides/index.html"
+  rm -rf "lessons/$name"
+}
+
+test_new_lesson_rejects_bad_names() {
+  if tools/new-lesson "BadName" 2>/dev/null; then
+    fail "expected non-zero exit for non-conforming name"
+  fi
+  if tools/new-lesson "1-only-one-digit" 2>/dev/null; then
+    fail "expected non-zero exit for single-digit lesson number"
+  fi
+  if tools/new-lesson "05-trailing-" 2>/dev/null; then
+    fail "expected non-zero exit for trailing dash"
+  fi
+  if tools/new-lesson "05--double-dash" 2>/dev/null; then
+    fail "expected non-zero exit for double dash"
+  fi
+}
+
+test_new_lesson_refuses_to_overwrite() {
+  local name="99-harness-smoke"
+  rm -rf "lessons/$name"
+  tools/new-lesson "$name" >/dev/null
+  if tools/new-lesson "$name" 2>/dev/null; then
+    fail "expected non-zero exit when lesson directory already exists"
+  fi
+  rm -rf "lessons/$name"
+}
+
+test_slides_dev_rejects_missing_lesson() {
+  if tools/slides-dev "99-does-not-exist" 2>/dev/null; then
+    fail "expected non-zero exit when lesson dir missing"
+  fi
+}
+
+test_slides_dev_rejects_no_arg() {
+  if tools/slides-dev 2>/dev/null; then
+    fail "expected non-zero exit when no lesson name given"
+  fi
+}
+
+test_run_all_tests_passes_with_scaffolded_lesson() {
+  local name="99-harness-runall"
+  rm -rf "lessons/$name"
+  tools/new-lesson "$name" >/dev/null
+  if ! tools/run-all-tests >/tmp/run-all.out 2>&1; then
+    cat /tmp/run-all.out >&2
+    rm -rf "lessons/$name"
+    fail "tools/run-all-tests failed on freshly scaffolded lesson"
+  fi
+  rm -rf "lessons/$name"
+}
+
+test_check_solutions_passes_with_scaffolded_lesson() {
+  local name="99-harness-cs"
+  rm -rf "lessons/$name"
+  tools/new-lesson "$name" >/dev/null
+  if ! tools/check-solutions >/tmp/check-sol.out 2>&1; then
+    cat /tmp/check-sol.out >&2
+    rm -rf "lessons/$name"
+    fail "tools/check-solutions failed on freshly scaffolded lesson"
+  fi
+  rm -rf "lessons/$name"
+}
+
+test_check_solutions_fails_on_broken_solution() {
+  local name="99-harness-broken"
+  rm -rf "lessons/$name"
+  tools/new-lesson "$name" >/dev/null
+  cat > "lessons/$name/solutions/test/broken_test.exs" <<'EOF'
+defmodule BrokenTest do
+  use ExUnit.Case
+  test "intentionally fails" do
+    assert 1 == 2
+  end
+end
+EOF
+  if tools/check-solutions >/tmp/check-sol-broken.out 2>&1; then
+    rm -rf "lessons/$name"
+    fail "tools/check-solutions should have failed on a broken solution"
+  fi
+  rm -rf "lessons/$name"
+}
+
+test_lint_all_passes_on_template_output() {
+  local name="99-harness-lint"
+  rm -rf "lessons/$name"
+  tools/new-lesson "$name" >/dev/null
+  if ! tools/lint-all >/tmp/lint.out 2>&1; then
+    cat /tmp/lint.out >&2
+    rm -rf "lessons/$name"
+    fail "tools/lint-all failed on freshly scaffolded lesson"
+  fi
+  rm -rf "lessons/$name"
+}
+
+test_build_index_produces_dist() {
+  # With no published lessons, build_index still produces dist/index.html
+  # listing all 41 lessons as "future" placeholders.
+  rm -rf dist
+  elixir tools/build_index/build_index.exs \
+    --lessons lessons --shared shared/reveal --out dist >/tmp/build-index.out 2>&1 \
+    || { cat /tmp/build-index.out >&2; fail "build_index exited non-zero"; }
+  assert_file "dist/index.html"
+  assert_dir "dist/shared/reveal"
+  assert_grep "Elixir Training" "dist/index.html"
+  # All 41 lessons should appear as future (none scaffolded)
+  local count
+  count=$(grep -c 'class="lesson future"' dist/index.html)
+  [[ "$count" -eq 41 ]] || fail "expected 41 future lessons, got $count"
+  rm -rf dist
+}
+
+test_build_index_marks_published_lessons() {
+  # Scaffold 00-setup (which IS in the master list) and confirm it lights up.
+  local name="00-setup"
+  rm -rf "lessons/$name" dist
+  tools/new-lesson "$name" >/dev/null
+  elixir tools/build_index/build_index.exs \
+    --lessons lessons --shared shared/reveal --out dist >/tmp/build-index.out 2>&1 \
+    || { cat /tmp/build-index.out >&2; rm -rf "lessons/$name" dist; fail "build_index exited non-zero"; }
+  assert_file "dist/lessons/$name/slides/index.html"
+  assert_grep "lessons/$name/slides/" "dist/index.html"
+  rm -rf "lessons/$name" dist
+}
+
+main "$@"
