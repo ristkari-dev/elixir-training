@@ -14,12 +14,14 @@ env:
   AR_REPO: elixir-training
   IMAGE_NAME: slides
   SERVICE_NAME: elixir-training-slides
+  # Opt JS-based actions onto Node 24 ahead of GitHub's 2026-06-02 default flip.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - id: auth
         uses: google-github-actions/auth@v2
@@ -30,37 +32,58 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
 
       - name: Configure Docker for Artifact Registry
-        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+        env:
+          REGION: ${{ env.REGION }}
+        run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
 
       - name: Build and push image
         id: build
+        env:
+          REGION: ${{ env.REGION }}
+          AR_REPO: ${{ env.AR_REPO }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          SHA: ${{ github.sha }}
         run: |
-          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}/${IMAGE_NAME}:${SHA}"
           docker build -t "$IMAGE" -f deploy/Dockerfile .
           docker push "$IMAGE"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
 
       - name: Render Cloud Run spec
+        env:
+          IMAGE: ${{ steps.build.outputs.image }}
         run: |
-          sed "s|__IMAGE__|${{ steps.build.outputs.image }}|" deploy/cloudrun.yaml > /tmp/cloudrun.rendered.yaml
+          sed "s|__IMAGE__|${IMAGE}|" deploy/cloudrun.yaml > /tmp/cloudrun.rendered.yaml
 
       - name: Deploy to Cloud Run
+        env:
+          REGION: ${{ env.REGION }}
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           gcloud run services replace /tmp/cloudrun.rendered.yaml \
-              --region=${{ env.REGION }} \
-              --project=${{ secrets.GCP_PROJECT_ID }}
+              --region="$REGION" \
+              --project="$PROJECT_ID"
 
       - name: Allow public access (idempotent)
+        env:
+          SERVICE_NAME: ${{ env.SERVICE_NAME }}
+          REGION: ${{ env.REGION }}
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
-          gcloud run services add-iam-policy-binding ${{ env.SERVICE_NAME }} \
-              --region=${{ env.REGION }} \
-              --project=${{ secrets.GCP_PROJECT_ID }} \
+          gcloud run services add-iam-policy-binding "$SERVICE_NAME" \
+              --region="$REGION" \
+              --project="$PROJECT_ID" \
               --member=allUsers \
               --role=roles/run.invoker
 
       - name: Print service URL
+        env:
+          SERVICE_NAME: ${{ env.SERVICE_NAME }}
+          REGION: ${{ env.REGION }}
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
-          gcloud run services describe ${{ env.SERVICE_NAME }} \
-              --region=${{ env.REGION }} \
-              --project=${{ secrets.GCP_PROJECT_ID }} \
+          gcloud run services describe "$SERVICE_NAME" \
+              --region="$REGION" \
+              --project="$PROJECT_ID" \
               --format='value(status.url)'
