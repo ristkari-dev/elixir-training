@@ -28,7 +28,7 @@ The script is idempotent — re-runnable. It:
 
 1. Enables the required APIs (`artifactregistry`, `run`, `iamcredentials`, `sts`).
 2. Creates Artifact Registry repo `elixir-training` in `europe-north1`.
-3. Creates service account `github-deploy@ristkari-dev.iam.gserviceaccount.com`.
+3. Creates service account `github-deploy-elixir@ristkari-dev.iam.gserviceaccount.com`.
 4. Grants it `roles/artifactregistry.writer`, `roles/run.admin`,
    `roles/iam.serviceAccountUser`.
 5. Creates Workload Identity Federation pool `github-actions` and OIDC
@@ -43,7 +43,7 @@ Take the three values printed by `setup.sh` and set them as repo secrets:
 ```bash
 gh secret set GCP_PROJECT_ID                 -b "ristkari-dev"
 gh secret set GCP_WORKLOAD_IDENTITY_PROVIDER -b "<value-from-setup-output>"
-gh secret set GCP_SERVICE_ACCOUNT_EMAIL      -b "github-deploy@ristkari-dev.iam.gserviceaccount.com"
+gh secret set GCP_SERVICE_ACCOUNT_EMAIL      -b "github-deploy-elixir@ristkari-dev.iam.gserviceaccount.com"
 ```
 
 Or set them in the GitHub UI: **Settings → Secrets and variables → Actions**.
