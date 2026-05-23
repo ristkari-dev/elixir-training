@@ -41,7 +41,7 @@ brew install asdf
 Add to `~/.zshrc`:
 
 ```
-. $(brew --prefix asdf)/libexec/asdf.sh
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 ```
 
 Close the terminal, open a new one.
@@ -65,14 +65,17 @@ First Erlang build: **20+ minutes** (compiles from source). Grab coffee.
 Debian/Ubuntu:
 ```
 sudo apt install -y build-essential autoconf m4 \
-  libncurses5-dev libssl-dev automake
+  libncurses5-dev libssl-dev automake unzip curl
 ```
 
 (Fedora: `dnf install` · Arch: `pacman -S base-devel ...`)
 
-Install asdf:
+Install asdf v0.16+ binary (pick `linux-amd64` or `linux-arm64`):
 ```
-git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.15.0
+mkdir -p ~/.local/bin
+curl -L https://github.com/asdf-vm/asdf/releases/download/v0.19.0/asdf-v0.19.0-linux-amd64.tar.gz \
+  | tar xz -C ~/.local/bin
+export PATH="$HOME/.local/bin:${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 ```
 
 ---
@@ -139,7 +142,7 @@ Hello, Elixir!
 
 ### Exit
 
-Press **Ctrl-C twice** to exit.
+Press **Ctrl-C**, then **Ctrl-C** again at the BREAK menu.
 
 Or **Ctrl-G**, then `q`, then Enter.
 
@@ -201,4 +204,8 @@ Finished in 0.02 seconds
 
 From here on we build on this.
 
-Take a break, then move to **lesson 01**.
+Take a break, then move to **lesson 01**:
+
+```
+make slides-dev LESSON=01-values-and-types
+```

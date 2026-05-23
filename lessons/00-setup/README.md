@@ -39,13 +39,13 @@ asdf is a version manager. It lets you install multiple versions of Erlang and E
 brew install asdf
 ```
 
-Then add this line to the bottom of `~/.zshrc`:
+Homebrew now ships asdf v0.16+ (the Go rewrite). Unlike the classic shell-script version, there is no shell-loader script to source — instead you add asdf's "shims" directory to your `PATH`. Add this line to the bottom of `~/.zshrc`:
 
 ```
-. $(brew --prefix asdf)/libexec/asdf.sh
+export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 ```
 
-> 💡 **First time seeing this?** `~/.zshrc` is a configuration file your shell reads when it starts. The `~` means "your home folder". You can edit the file with any text editor — `nano ~/.zshrc` works from the terminal. The line that starts with `.` tells your shell to load asdf every time you open a new terminal.
+> 💡 **First time seeing this?** `~/.zshrc` is a configuration file your shell reads when it starts. The `~` means "your home folder". You can edit the file with any text editor — `nano ~/.zshrc` works from the terminal. The line you just added prepends asdf's shims folder to `PATH`, which is how every new terminal finds the `elixir`, `mix`, and `iex` commands asdf installs.
 
 Close the terminal window and open a new one. From now on, `asdf` should work.
 
@@ -113,34 +113,41 @@ Erlang compiles from source, so we need a C compiler and a few development libra
 
 ```
 sudo apt update
-sudo apt install -y build-essential autoconf m4 libncurses5-dev libssl-dev automake
+sudo apt install -y build-essential autoconf m4 libncurses5-dev libssl-dev automake unzip curl
 ```
 
 **Fedora / RHEL:**
 
 ```
-sudo dnf install -y gcc make autoconf m4 ncurses-devel openssl-devel automake
+sudo dnf install -y gcc make autoconf m4 ncurses-devel openssl-devel automake unzip curl
 ```
 
 **Arch Linux:**
 
 ```
-sudo pacman -S --needed base-devel ncurses openssl autoconf automake
+sudo pacman -S --needed base-devel ncurses openssl autoconf automake unzip curl
 ```
 
-### 2. Install asdf via git
+`unzip` and `curl` aren't needed by Erlang itself, but the asdf-erlang and asdf-elixir plugins use them to fetch precompiled artifacts and reference data.
+
+### 2. Install asdf v0.16+ from the GitHub binary release
+
+As of v0.16, asdf is distributed as a single Go binary — no more `git clone` of a shell-script repo. Download the latest release (v0.19.0 at the time of writing; check <https://github.com/asdf-vm/asdf/releases/latest> for newer) and drop the `asdf` binary into a folder on your `PATH`.
+
+Pick the archive that matches your CPU: `linux-amd64` for most desktops, laptops, and cloud VMs; `linux-arm64` for Raspberry Pi 4/5, AWS Graviton, and other 64-bit ARM machines. Check with `uname -m` if you're unsure — `x86_64` means amd64, `aarch64` means arm64.
 
 ```
-git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.15.0
+mkdir -p ~/.local/bin
+curl -L https://github.com/asdf-vm/asdf/releases/download/v0.19.0/asdf-v0.19.0-linux-amd64.tar.gz | tar xz -C ~/.local/bin
 ```
 
 Then add this line to your shell config — `~/.bashrc` if you use bash, `~/.zshrc` if you use zsh:
 
 ```
-. ~/.asdf/asdf.sh
+export PATH="$HOME/.local/bin:${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
 ```
 
-> 💡 **First time seeing this?** `~/.bashrc` (or `~/.zshrc`) is a small file that runs every time you open a new terminal. The line you just added loads asdf. After saving, close the terminal window and open a new one — your changes only take effect in fresh windows.
+> 💡 **First time seeing this?** `~/.bashrc` (or `~/.zshrc`) is a small file that runs every time you open a new terminal. The line you just added puts the `asdf` binary and asdf's shims folder on your `PATH`, which is how new terminals find `asdf`, `elixir`, `mix`, and `iex`. After saving, close the terminal window and open a new one — your changes only take effect in fresh windows.
 
 ### 3. Install the Erlang and Elixir asdf plugins
 
@@ -279,9 +286,9 @@ Two green dots, zero failures. You just compiled and tested an Elixir project. T
 You can write Elixir in any text editor, but a good editor with language support catches typos as you type and shows you documentation inline. The most popular setup for beginners is Visual Studio Code with the ElixirLS extension.
 
 - Download VS Code from <https://code.visualstudio.com> and install it.
-- Open the Extensions sidebar (Cmd/Ctrl-Shift-X), search for **elixir**, and install the **ElixirLS: Elixir support and debugger** extension by JakeBecker (the one with the most installs).
+- Open the Extensions sidebar (Cmd/Ctrl-Shift-X), search for **elixir**, and install the **ElixirLS: Elixir support and debugger** extension published by **JakeBecker**.
 - Open the `hello/` directory you just created: **File → Open Folder...** and pick it.
-- Alternative editors all work: vim or neovim with `elixir-tools.nvim`, Zed (Elixir support built in), or Emacs with `elixir-mode`. Pick whichever you're comfortable with.
+- Alternative editors all work: vim or neovim with `elixir-tools.nvim`, Zed (install the Elixir extension), or Emacs with `elixir-mode`. Pick whichever you're comfortable with.
 
 ## Troubleshooting
 

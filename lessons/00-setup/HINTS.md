@@ -30,8 +30,8 @@ The README walks through setup top-to-bottom. This file is the lookup table you 
 3. **`cc: command not found` or `make: command not found`.**
    You skipped build-essentials. Debian/Ubuntu: `sudo apt install build-essential autoconf m4 automake`. Fedora/RHEL: `sudo dnf install gcc make autoconf m4 automake`. Arch: `sudo pacman -S base-devel`.
 
-4. **`git: command not found` when cloning asdf.**
-   `sudo apt install git` / `sudo dnf install git` / `sudo pacman -S git`. Re-run the `git clone` from README step 2.
+4. **`curl: command not found` or `tar: command not found` when downloading asdf.**
+   `sudo apt install curl tar` / `sudo dnf install curl tar` / `sudo pacman -S curl tar`. Re-run the download from README step 2.
 
 5. **Build succeeds but `asdf current erlang` shows "no version set".**
    Run `asdf install erlang 27.2`, then `asdf global erlang 27.2`, then `asdf reshim`.
@@ -39,7 +39,7 @@ The README walks through setup top-to-bottom. This file is the lookup table you 
 ## When IEx won't start
 
 1. **`iex: command not found`.**
-   Run `asdf reshim`. If still missing, check the asdf source line is in your shell config: `. $(brew --prefix asdf)/libexec/asdf.sh` (macOS) or `. ~/.asdf/asdf.sh` (Linux). Close the terminal and open a new one — sourcing only happens in fresh windows.
+   Run `asdf reshim`. If still missing, check the shims PATH export is in your shell config: `export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"` (macOS `~/.zshrc`; Linux `~/.bashrc` or `~/.zshrc`, with `$HOME/.local/bin` prepended too if asdf was installed there). Close the terminal and open a new one — shell config only re-runs in fresh windows.
 
 2. **`iex` starts but spews red text about `:erlang.start/0`.**
    Erlang isn't installed for the current shim. Run `asdf current` and check both Erlang and Elixir show concrete versions. If one shows "no version set", run `asdf global erlang 27.2` and `asdf global elixir 1.18.2-otp-27`.
