@@ -1,6 +1,6 @@
 # Lesson 01: Values and types
 
-By the end of this lesson, you'll be able to name the basic types Elixir works with — integers, floats, atoms, strings — and tell the difference between binding (`x = 1`) and assignment (which Elixir doesn't have). These are the building blocks every later lesson stacks on top of, so it's worth slowing down here even if some of it feels obvious.
+By the end of this lesson, you'll be able to name the basic types Elixir works with — integers, floats, atoms, strings — and understand what's happening when you write `x = 1`. (Spoiler: it's not assignment in the way you may have heard the word elsewhere; we'll dig into why in lesson 02.) These are the building blocks every later lesson stacks on top of, so it's worth slowing down here even if some of it feels obvious.
 
 ## Key ideas
 
@@ -29,7 +29,7 @@ iex> x = 42
 42
 ```
 
-That last line bound the name `x` to `42`. If you now type `x + 1`, you'll get `43`. Try `x = "hello"` and then `x + 1` — you'll see an `ArithmeticError`, because `"hello"` is a string and `+` only adds numbers. That's Elixir telling you the types don't line up.
+That last line bound the name `x` to `42`. If you now type `x + 1`, you'll get `43`. Now try `x = "hello"` and then `x + 1`. You'll see a scary-looking error message — that's expected. Read the top line of it; everything below is the call stack. The top line says `ArithmeticError`, because `"hello"` is a string and `+` only adds numbers. That's Elixir telling you the types don't line up.
 
 > 💡 **First time seeing this?** The `iex>` you see in code samples is the prompt — you don't type it. You type whatever comes after it, then press Enter. The line directly below is what Elixir prints back at you.
 

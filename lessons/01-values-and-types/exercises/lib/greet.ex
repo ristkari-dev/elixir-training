@@ -7,6 +7,5 @@ defmodule Greet do
       iex> Greet.hello("Aki")
       "Hello, Aki!"
   """
-  def hello(_name),
-    do: raise("TODO: implement Greet.hello/1 — concatenate \"Hello, \", name, and \"!\"")
+  def hello(_name), do: raise("TODO: return \"Hello, <name>!\"")
 end

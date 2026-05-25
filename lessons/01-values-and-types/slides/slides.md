@@ -137,7 +137,7 @@ iex> "1" + "2"
 ** (ArithmeticError) bad argument in arithmetic expression
 ```
 
-For text, use `<>`. For numbers from text, parse first with `Integer.parse/1`.
+For text, use `<>`. To add numbers from strings, you'd need to convert the strings to numbers first — we'll see how later in the course.
 
 ---
 

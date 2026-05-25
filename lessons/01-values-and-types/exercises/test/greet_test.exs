@@ -7,7 +7,7 @@ defmodule GreetTest do
   end
 
   @tag :pending
-  test "Greet.hello/1 greets the empty string" do
-    assert Greet.hello("") == "Hello, !"
+  test "Greet.hello/1 works with any name" do
+    assert Greet.hello("World") == "Hello, World!"
   end
 end
