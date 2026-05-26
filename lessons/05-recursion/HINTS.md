@@ -23,7 +23,7 @@ def of([h | t]), do: h + of(t)
 
 ### Hint 1
 
-Same shape as `Sum.of/1`. Base case returns `0`. Recursive case adds `1` plus a recursive call on the tail.
+Same shape as `Sum.of/1`. Base case returns `0`. Recursive case adds `1` plus a recursive call on the tail. The starter file already has `import Kernel, except: [length: 1]` — that's there because Elixir auto-imports `Kernel.length/1` and we want our local `length/1` to "win" the name; leave it alone and just fill in the two clauses below.
 
 ### Hint 2
 
@@ -32,8 +32,16 @@ Same shape as `Sum.of/1`. Base case returns `0`. Recursive case adds `1` plus a 
 ### Hint 3
 
 ```elixir
-def length([]), do: 0
-def length([_ | t]), do: 1 + length(t)
+defmodule Counter do
+  @moduledoc "Recursive length over a list."
+
+  # Elixir auto-imports Kernel.length/1. We're defining our own length/1,
+  # so we explicitly opt out of the import for this one function.
+  import Kernel, except: [length: 1]
+
+  def length([]), do: 0
+  def length([_ | t]), do: 1 + length(t)
+end
 ```
 
 ## Drill 3: Mapper.double_all/1

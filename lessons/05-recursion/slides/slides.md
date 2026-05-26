@@ -152,59 +152,21 @@ and recurse.
 
 --
 
+### A glimpse of tail-call optimisation
+
+When the recursive call is the *last* thing a function does (as in
+`do_reverse/2` above), the Erlang VM reuses the stack frame instead
+of growing it. Naïve recursion (`Sum.of/1`, `Mapper.double_all/1`)
+grows the stack. You'll rarely have to think about this — but read
+the "Going further" section if you're curious.
+
+--
+
 ### Recap
 
 - Public wrapper seeds the accumulator.
 - Private helper does the recursion.
 - Naming convention: `do_foo/N` for the helper.
-
----
-
-## A glimpse of tail-call optimisation
-
-Not every recursive function grows the stack.
-
---
-
-### The rule
-
-If the recursive call is the *last thing* a function does — nothing
-wrapping it, no `+`, no `[h | ...]` — the runtime reuses the current
-stack frame instead of growing it. Called *tail-call optimisation*
-(TCO).
-
---
-
-### Sum.of/1 is NOT tail-recursive
-
-```
-def of([h | t]), do: h + of(t)
-```
-
-The recursive call `of(t)` happens, but then we still have to `h + …`
-the result. The `+` is the last thing, not the call.
-
---
-
-### do_reverse/2 IS tail-recursive
-
-```
-defp do_reverse([h | t], acc), do: do_reverse(t, [h | acc])
-```
-
-The recursive call is the last thing. Nothing wraps it. Million-element
-list? No problem.
-
-Common mistake: assuming *all* recursion is fine on huge inputs. For
-huge lists, use accumulator helpers (or `Enum`, lesson 06).
-
---
-
-### Recap
-
-- Tail call = recursive call is the *very last thing*.
-- TCO = no stack growth.
-- Accumulator helpers are usually tail-recursive.
 
 ---
 

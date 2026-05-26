@@ -1,5 +1,8 @@
 defmodule Counter do
   @moduledoc "Recursive length over a list."
+
+  # Elixir auto-imports Kernel.length/1. We're defining our own length/1,
+  # so we explicitly opt out of the import for this one function.
   import Kernel, except: [length: 1]
 
   @doc """
