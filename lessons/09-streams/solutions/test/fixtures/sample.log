@@ -1,0 +1,15 @@
+2026-05-26T10:00:01 INFO  starting up
+2026-05-26T10:00:02 DEBUG loaded config
+2026-05-26T10:00:03 INFO  listening on :4000
+2026-05-26T10:00:05 ERROR could not connect to upstream
+2026-05-26T10:00:07 WARN  retry 1/3
+2026-05-26T10:00:08 ERROR connection refused
+2026-05-26T10:00:10 WARN  retry 2/3
+2026-05-26T10:00:11 ERROR timeout reading socket
+2026-05-26T10:00:13 INFO  worker ack
+2026-05-26T10:00:14 DEBUG flushing buffer
+2026-05-26T10:00:15 INFO  processed 42 items
+2026-05-26T10:00:17 ERROR upstream returned 500
+2026-05-26T10:00:18 WARN  retry 3/3
+2026-05-26T10:00:19 ERROR giving up
+2026-05-26T10:00:20 INFO  scheduling retry in 60s
