@@ -1,2 +1,5 @@
-# Built escript binary (from `mix escript.build`)
-wc_ex
+# Built escript binary (from `mix escript.build`).
+# Path-anchored so we don't accidentally ignore the lib/wc_ex/ and
+# test/wc_ex/ directories that hold the drill modules.
+/exercises/wc_ex
+/solutions/wc_ex
