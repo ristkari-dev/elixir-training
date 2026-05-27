@@ -1,0 +1,14 @@
+defmodule Mapper do
+  @moduledoc "Recursive map over a list, doubling each element."
+
+  @doc """
+  Return a new list with each element doubled.
+
+      iex> Mapper.double_all([1, 2, 3])
+      [2, 4, 6]
+      iex> Mapper.double_all([])
+      []
+  """
+  def double_all([]), do: []
+  def double_all([h | t]), do: [h * 2 | double_all(t)]
+end
