@@ -75,8 +75,8 @@ If you've already cloned this repo, `cd` into it. If not, create a temporary dir
 ```
 mkdir -p ~/elixir-setup && cd ~/elixir-setup
 cat > .tool-versions <<'EOF'
-elixir 1.18.2-otp-27
-erlang 27.2
+elixir 1.19.5-otp-28
+erlang 29.0.1
 EOF
 ```
 
@@ -97,8 +97,8 @@ elixir --version
 You should see something like:
 
 ```
-Erlang/OTP 27 [erts-15.x] ...
-Elixir 1.18.2 (compiled with Erlang/OTP 27)
+Erlang/OTP 29 [erts-17.0.1] ...
+Elixir 1.19.5 (compiled with Erlang/OTP 28)
 ```
 
 If you see that, skip ahead to **Your first Elixir program**.
@@ -162,8 +162,8 @@ Drop a `.tool-versions` file with the pinned versions, then run `asdf install`:
 
 ```
 cat > .tool-versions <<'EOF'
-elixir 1.18.2-otp-27
-erlang 27.2
+elixir 1.19.5-otp-28
+erlang 29.0.1
 EOF
 asdf install
 ```
@@ -176,7 +176,7 @@ Same warning as macOS: budget 20 to 40 minutes for the first build.
 elixir --version
 ```
 
-You should see Elixir 1.18.2 reported alongside Erlang/OTP 27.
+You should see Elixir 1.19.5 reported alongside Erlang/OTP 29.
 
 ## Windows learners — use WSL2
 
@@ -338,7 +338,7 @@ asdf needs to "reshim" — regenerate the shim scripts that put `elixir`, `mix`,
 asdf reshim
 ```
 
-If that doesn't help, run `asdf current elixir`. If it says "no version set", run `asdf global elixir 1.18.2-otp-27`.
+If that doesn't help, run `asdf current elixir`. If it says "no version set", run `asdf global elixir 1.19.5-otp-28`.
 
 ### Problem: Slow Erlang build (more than 30 minutes)
 

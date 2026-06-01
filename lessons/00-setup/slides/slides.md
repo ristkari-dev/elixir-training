@@ -96,9 +96,9 @@ Same warning as macOS — first build is slow.
 
 ```
 $ elixir --version
-Erlang/OTP 27 [erts-15.x] ...
+Erlang/OTP 29 [erts-17.0.1] ...
 
-Elixir 1.18.2 (compiled with Erlang/OTP 27)
+Elixir 1.19.5 (compiled with Erlang/OTP 28)
 ```
 
 ---
@@ -113,9 +113,9 @@ First program — in IEx.
 
 ```
 $ iex
-Erlang/OTP 27 ...
+Erlang/OTP 29 ...
 
-Interactive Elixir (1.18.2) - press Ctrl+C to exit
+Interactive Elixir (1.19.5) - press Ctrl+C to exit
 iex>
 ```
 
