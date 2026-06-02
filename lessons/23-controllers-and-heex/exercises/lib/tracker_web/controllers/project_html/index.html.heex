@@ -1,0 +1,10 @@
+<Layouts.app flash={@flash}>
+  <.header>
+    Projects
+  </.header>
+
+  <.table id="projects" rows={@projects}>
+    <:col :let={project} label="Name">{project.name}</:col>
+    <:col :let={project} label="Status">{project.status}</:col>
+  </.table>
+</Layouts.app>

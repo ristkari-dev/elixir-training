@@ -16,14 +16,25 @@ jobs:
           version-file: .tool-versions
           version-type: strict
 
-      - name: Cache Mix archives + Hex registry
+      # Install Hex + Rebar fresh for the active OTP. The precompiled Hex
+      # archive is OTP-major specific; a build cached under an older OTP
+      # fails to load (e.g. "module Hex.Repo ... does not exist" on OTP 29).
+      # Always (re)install so they match the toolchain pinned in
+      # .tool-versions, independent of any restored cache.
+      - name: Install Hex + Rebar for the active OTP
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+
+      # Cache only the Hex package registry + tarballs (~/.hex), which are
+      # OTP-independent. Do NOT cache ~/.mix — it holds the compiled Hex/Rebar
+      # archives, which must not be shared across OTP majors.
+      - name: Cache Hex registry + package tarballs
         uses: actions/cache@v5
         with:
-          path: |
-            ~/.hex
-            ~/.mix
-          key: ${{ runner.os }}-mix-${{ hashFiles('.tool-versions') }}
-          restore-keys: ${{ runner.os }}-mix-
+          path: ~/.hex
+          key: ${{ runner.os }}-hex-${{ hashFiles('.tool-versions') }}
+          restore-keys: ${{ runner.os }}-hex-
 
       - name: Harness self-tests (tooling smoke)
         run: make ci-smoke

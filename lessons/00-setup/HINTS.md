@@ -34,7 +34,7 @@ The README walks through setup top-to-bottom. This file is the lookup table you 
    `sudo apt install curl tar` / `sudo dnf install curl tar` / `sudo pacman -S curl tar`. Re-run the download from README step 2.
 
 5. **Build succeeds but `asdf current erlang` shows "no version set".**
-   Run `asdf install erlang 27.2`, then `asdf global erlang 27.2`, then `asdf reshim`.
+   Run `asdf install erlang 29.0.1`, then `asdf global erlang 29.0.1`, then `asdf reshim`.
 
 ## When IEx won't start
 
@@ -42,7 +42,7 @@ The README walks through setup top-to-bottom. This file is the lookup table you 
    Run `asdf reshim`. If still missing, check the shims PATH export is in your shell config: `export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"` (macOS `~/.zshrc`; Linux `~/.bashrc` or `~/.zshrc`, with `$HOME/.local/bin` prepended too if asdf was installed there). Close the terminal and open a new one — shell config only re-runs in fresh windows.
 
 2. **`iex` starts but spews red text about `:erlang.start/0`.**
-   Erlang isn't installed for the current shim. Run `asdf current` and check both Erlang and Elixir show concrete versions. If one shows "no version set", run `asdf global erlang 27.2` and `asdf global elixir 1.18.2-otp-27`.
+   Erlang isn't installed for the current shim. Run `asdf current` and check both Erlang and Elixir show concrete versions. If one shows "no version set", run `asdf global erlang 29.0.1` and `asdf global elixir 1.19.5-otp-28`.
 
 3. **`iex` starts but Ctrl-C does nothing visible.**
    That's the IEx break menu — press Ctrl-C again to abort, or type `a` and Enter. Alternatively, Ctrl-G then `q` then Enter.
