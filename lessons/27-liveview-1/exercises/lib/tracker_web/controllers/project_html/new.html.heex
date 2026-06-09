@@ -1,0 +1,9 @@
+<Layouts.app flash={@flash}>
+  <.header>New project</.header>
+
+  <.form for={@form} action={~p"/projects"}>
+    <.input field={@form[:name]} label="Name" />
+    <.input field={@form[:status]} label="Status" />
+    <.button>Save</.button>
+  </.form>
+</Layouts.app>
