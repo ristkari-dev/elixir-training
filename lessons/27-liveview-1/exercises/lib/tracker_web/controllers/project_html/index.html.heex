@@ -1,0 +1,13 @@
+<Layouts.app flash={@flash}>
+  <.header>
+    Projects
+    <:actions>
+      <.button navigate={~p"/projects/new"}>New project</.button>
+    </:actions>
+  </.header>
+
+  <.table id="projects" rows={@projects}>
+    <:col :let={project} label="Name">{project.name}</:col>
+    <:col :let={project} label="Status">{project.status}</:col>
+  </.table>
+</Layouts.app>
