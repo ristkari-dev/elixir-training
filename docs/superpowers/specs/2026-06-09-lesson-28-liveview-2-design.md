@@ -98,21 +98,27 @@ The lesson-27 board renders the issue list with `assign(:issues, ...)` and
   ```
   (Subscribing only on the connected mount avoids subscribing twice / on the
   dead render.)
-- On add and toggle, the changed issue is **broadcast** to the topic:
+- On add and toggle, the LiveView updates its **own** stream directly and
+  broadcasts to the **other** tabs with `broadcast_from(self())` (which excludes
+  the caller):
   ```elixir
-  Phoenix.PubSub.broadcast(Tracker.PubSub, "board:#{project_id}", {:issue, issue})
+  Phoenix.PubSub.broadcast_from(Tracker.PubSub, self(), "board:#{project_id}", {:issue, issue})
+  # ... and locally:
+  stream_insert(socket, :issues, issue)
   ```
-- A `handle_info({:issue, issue}, socket)` clause applies the change to the
-  stream:
+- A `handle_info({:issue, issue}, socket)` clause applies broadcasts from other
+  tabs to the stream:
   ```elixir
   def handle_info({:issue, issue}, socket) do
     {:noreply, stream_insert(socket, :issues, issue)}
   end
   ```
-- This is the idiomatic single-path pattern: `handle_event` changes data and
-  broadcasts (it does **not** update the stream directly); every subscribed tab
-  — including the one that made the change — receives the broadcast via
-  `handle_info` and updates its stream the same way.
+- **Two-path, not single-path.** The caller updates its own tab synchronously
+  (local `stream_insert`) and tells the others via `broadcast_from(self())`.
+  A single-path "broadcast to everyone including self, only `handle_info`
+  updates" makes the caller's own update an async self-message — a beat of UI
+  lag and, more importantly, flaky tests (the assertion races the self-broadcast).
+  `broadcast_from(self())` excludes the caller, so there's no double-insert.
 
 ### The drill (hand-written, `@tag :pending`)
 
@@ -124,18 +130,19 @@ The **drill is the real-time wiring** — three holes the learner fills, all in
 `lib/tracker_web/live/project_board_live.ex`:
 
 1. `handle_event("add_issue", ...)` — after `Issues.create_issue/2` succeeds,
-   **broadcast** `{:issue, issue}` to `"board:#{project_id}"` (and re-set the
-   form). It must NOT `stream_insert` locally — the board updates via the
-   broadcast.
-2. `handle_event("toggle", ...)` — `Issues.toggle_issue/1`, then **broadcast**
-   `{:issue, updated_issue}`.
+   `broadcast_from(self())` `{:issue, issue}` to the topic AND `stream_insert`
+   it locally (and re-set the form).
+2. `handle_event("toggle", ...)` — `Issues.toggle_issue/1`, then
+   `broadcast_from(self())` `{:issue, updated_issue}` AND `stream_insert` it
+   locally.
 3. `handle_info({:issue, issue}, socket)` — `stream_insert(socket, :issues, issue)`.
 
 Exercise stubs (typed-placeholder, compile-clean under
 `--warnings-as-errors`, per the Phoenix-era stub convention):
 - `handle_event` clauses perform the data change (create/toggle) and reset the
-  form but do NOT broadcast — each with a `# TODO:` comment — so nothing
-  appears on any tab.
+  form but do NOT broadcast or `stream_insert` — each with a `# TODO:` comment —
+  so nothing appears on any tab. (The broadcast is inlined, not a private
+  helper, so there is no unused-function warning when the drill is stubbed.)
 - `handle_info({:issue, _issue}, socket)` returns `{:noreply, socket}` with a
   `# TODO:` (so it compiles, since `mount` subscribes and messages will
   arrive), updating nothing.
@@ -155,25 +162,26 @@ sandbox) with `register_and_log_in_user`, `async: false` (the in-memory
   `~p"/users/log-in"`.
 - **not-yours (not pending):** the owner check redirects to `~p"/projects"`.
 - **add (`@tag :pending`):** mount the board, `render_submit` the add form with
-  a title, assert the new title appears (via broadcast → `handle_info` →
-  `stream_insert`).
+  a title, assert the new title appears (the caller's own tab updates via its
+  local `stream_insert`).
 - **toggle (`@tag :pending`):** with an issue present, `render_click` that
-  issue's toggle, assert its status flips (target `#issue-<id> .status`).
+  issue's toggle, assert its status flips (target `#issues-<id> .status`).
 - **multi-tab (`@tag :pending`) — the headline:** mount the same project's board
   in two `live/2` sessions (both as the owner); `render_submit` an add in the
   first; assert the new title appears in the **second** view's rendered HTML
   (cross-tab PubSub). This proves the broadcast path.
 
-**Isolation:** target a specific `#issue-<id>` element, never a bare selector;
+**Isolation:** target a specific `#issues-<id>` element, never a bare selector;
 each test makes a fresh user + project so issue ids/contents never collide.
 
-**Synchronizing on the broadcast:** because the board updates via a self-
-broadcast that arrives as a `handle_info` message *after* the event handler
-returns, assertions must re-render to let that message process. The drill tests
-assert with a fresh `render(view)` / `has_element?(view, ...)` call *after*
-`render_submit`/`render_click` (those functions do a synchronous round-trip that
-flushes the LiveView mailbox), not on the value returned directly by the event
-function. The exact pattern is verified against a live socket at plan time.
+**Synchronizing across tabs:** the caller's own tab updates synchronously (local
+`stream_insert` in the event handler), so `render(view)` after `render_submit` /
+`has_element?` after `render_click` reflect it immediately. The **cross-tab**
+update arrives at the other tab as a `handle_info` message; the multi-tab test
+asserts with `render(tab_b)` *after* the action, and that synchronous round-trip
+flushes tab B's mailbox (local PubSub dispatch has already queued the message by
+the time the action returns). Verified against a live two-tab socket at plan
+time.
 
 ### Drill model & test conventions
 
@@ -203,7 +211,7 @@ function. The exact pattern is verified against a live socket at plan time.
    Mitigation: prototype the full lesson against a real socket + two live
    sessions at plan time (the prototype-first discipline used for lessons
    26–27), confirming the second view re-renders.
-2. **Streams + the in-memory store.** Mitigation: target `#issue-<id>`,
+2. **Streams + the in-memory store.** Mitigation: target `#issues-<id>`,
    `async: false`, fresh per-test user+project — proven in lesson 27.
 3. **Broadcasting from the LiveView vs. the context.** This lesson broadcasts
    from the LiveView's `handle_event` (visible, all in one module) rather than
