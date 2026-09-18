@@ -114,7 +114,8 @@ children = [
 ```
 
 `add/1` appends with an auto-incrementing id; `list/0` returns them.
-Process state — **lost on restart**. That's the gap Postgres fills next.
+Process state — **lost on restart**. That's the gap Postgres fills in
+lesson 29.
 
 ---
 
