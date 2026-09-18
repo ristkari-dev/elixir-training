@@ -17,7 +17,7 @@ defmodule Tracker.Accounts.UserToken do
     field :context, :string
     field :sent_to, :string
     field :authenticated_at, :utc_datetime
-    belongs_to(:user, Tracker.Accounts.User)
+    belongs_to :user, Tracker.Accounts.User
 
     timestamps type: :utc_datetime, updated_at: false
   end

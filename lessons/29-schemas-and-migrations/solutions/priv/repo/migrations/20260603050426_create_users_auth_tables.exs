@@ -12,7 +12,7 @@ defmodule Tracker.Repo.Migrations.CreateUsersAuthTables do
       timestamps type: :utc_datetime
     end
 
-    create(unique_index(:users, [:email]))
+    create unique_index(:users, [:email])
 
     create table(:users_tokens) do
       add :user_id, references(:users, on_delete: :delete_all), null: false
@@ -24,7 +24,7 @@ defmodule Tracker.Repo.Migrations.CreateUsersAuthTables do
       timestamps type: :utc_datetime, updated_at: false
     end
 
-    create(index(:users_tokens, [:user_id]))
-    create(unique_index(:users_tokens, [:context, :token]))
+    create index(:users_tokens, [:user_id])
+    create unique_index(:users_tokens, [:context, :token])
   end
 end
