@@ -275,13 +275,17 @@ Exercise stubs follow the Phoenix-era convention: typed placeholders with
 or private functions, compile-clean under `--warnings-as-errors`, and no
 reference to `%Issue{}` (the module doesn't exist yet) anywhere in `lib/` or
 `test/`. `change_issue/1` must stay a working schemaless changeset, because
-`ProjectBoardLive.mount/3` consumes it on every board load. The exact stub shape
-for `create_issue/2` is settled by the plan's prototype: an error-only stub
-warns "clause will never match" at the provided `{:ok, issue} ->`, and a
-success stub returning a map without `:id` crashes `stream_insert` with a
-confusing `ArgumentError`. Lesson 25's precedent (return both shapes) is the
-starting point; whatever is chosen, each pending test must fail for the right
-reason and none may pass by accident.
+`ProjectBoardLive.mount/3` consumes it on every board load.
+
+The plan's prototype settled `create_issue/2`'s stub shape: it returns **both**
+`{:ok, _}` and `{:error, _}`, like lesson 25's. An error-only stub fails the
+build — Elixir 1.19's type checker reports "the following clause will never
+match: `{:ok, issue}`" against the provided LiveView. The consequence is that
+the stub can fabricate an issue, so three drill tests assert persistence rather
+than rendering: the board's add and multi-tab tests reload the board, and
+`create_issue/2`'s context test reads the issue back with `list_issues/1`.
+Without that the stub satisfies them and they pass with the drill undone
+(`assert issue.id` does not save it — the stub's `0` is truthy).
 
 ### Testing
 
@@ -304,9 +308,11 @@ through the SQL sandbox lesson 26 introduced.
 - `projects_test.exs`'s missing-id test asserts `Ecto.NoResultsError`.
 - Pending: the four `issues_table_test.exs` checks (Drill 1), the three
   `issues_test.exs` behaviors that need a persisted issue, and the board's add,
-  toggle and multi-tab tests (Drill 2) — about 10, above lessons 26–28's 2–4,
+  toggle and multi-tab tests (Drill 2) — **10**, above lessons 26–28's 2–4,
   which the README's drill section reflects. Every board and issue test needs
-  both drills done; the plan records the exact count and each failure reason.
+  both drills done. Prototype counts: solution **118 tests / 0 failures**;
+  exercise **108 / 0 with 10 excluded**, and exactly those 10 failing under
+  `--include pending`, each for its own reason (the plan tabulates them).
 - Carried tests keep the `"project"` / `"issue"` form param keys and the
   `#issues-<id>` stream DOM ids.
 
@@ -385,9 +391,10 @@ apart:
    consumes can warn or crash confusingly (see The drills). Mitigation:
    prototype under the pinned toolchain, run `mix precommit`, and confirm each
    pending test's failure reason.
-4. **`async: true` on LiveView DB tests is a repo first.** Mitigation: the
-   prototype runs the suite repeatedly and checks for sandbox "owner exited"
-   noise; fall back to `async: false` for the board test alone if it appears.
+4. **`async: true` on LiveView DB tests is a repo first.** Cleared by the
+   prototype: four consecutive runs of the full solution suite were green with
+   no sandbox "owner exited" noise. If it ever appears, fall back to
+   `async: false` for the board test alone.
 5. **Lesson size.** Two domains, schemas, migrations, indexes, the `Repo` API
    and ~10 pending tests may run past the 1–2 hour target. Mitigation: projects
    is read-only worked example, the drills stay narrow, and anything optional
