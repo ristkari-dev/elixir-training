@@ -271,8 +271,10 @@ for atoms.
 `foreign_key_constraint(:project_id)` in `Issue.changeset/2`. Drill 1's title
 pipeline mirrors the provided one: trim first, then measure.
 
-Target **6–8** pending tests, split roughly evenly — below lesson 29's 10. The
-plan's prototype records the exact count and each failure reason.
+Pending tests: **9** — seven in the new changeset test file and two carried
+`issues_test.exs` assertions that now expect atoms. (The brainstorm targeted
+6–8; the prototype settled on 9, one below lesson 29's 10, and Plan J tabulates
+each failure reason.)
 
 Note that lesson 29's stub hazard is largely **moot** here: both drills deepen
 code that already compiles and works, so there is no `raise`-shaped stub and no
