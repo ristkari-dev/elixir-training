@@ -2,7 +2,7 @@
 
 In lesson 22 you wired a route to a one-line action that returned plain text. Now you'll write a real **page**: a controller action that picks the data, hands it to a **HEEx template**, and renders HTML through the Tracker layout. You'll build the **Projects index** — a table of projects rendered from a hard-coded list, using the Phoenix 1.8 core components.
 
-There's still no database. The projects are a literal list in the controller for now; a real in-memory store arrives in lesson 24, and Postgres in lesson 26. Today is about the render path: action → assigns → template → HTML.
+There's still no database. The projects are a literal list in the controller for now; a real in-memory store arrives in lesson 24, and Postgres in lesson 29. Today is about the render path: action → assigns → template → HTML.
 
 ## What you should be able to do
 

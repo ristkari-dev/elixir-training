@@ -45,7 +45,7 @@ def create_project(attrs) do
 end
 ```
 
-`create_project/1` returns the conventional `{:ok, project}` / `{:error, changeset}` tuple — the same shape Phoenix generators produce, and the same shape you'll keep using once a real schema and `Repo` are behind it. The `!` on `get_project!/1` is the usual convention: it **raises** when there's no such project rather than returning `nil`. Here the missing-id case raises a plain `RuntimeError` (`ProjectStore.get(id) || raise "..."`).
+`create_project/1` returns the conventional `{:ok, project}` / `{:error, changeset}` tuple — the same shape Phoenix generators produce, and the same shape you'll keep using once a real schema and `Repo` are behind it. The `!` on `get_project!/1` is the usual convention: it **raises** when there's no such project rather than returning `nil`. Here the missing-id case raises a plain `RuntimeError` (`ProjectStore.get(id) || raise "..."`). In lesson 29 the store behind it becomes `Repo.get!`, and the same lookup raises `Ecto.NoResultsError` instead — which Phoenix renders as a 404 rather than a 500.
 
 **The controller just delegates.** Every action now calls the context and nothing else:
 
@@ -72,7 +72,7 @@ def create(conn, %{"project" => params}) do
 end
 ```
 
-Note `show/2`: the id arrives from the URL as a **string**, so it calls `String.to_integer(id)` before handing it to `get_project!/1` (the store keys projects by integer id). And `to_form/2` is still called fully qualified as `Phoenix.Component.to_form/2` — it isn't imported in a controller.
+Note `show/2`: the id arrives from the URL as a **string**, so it calls `String.to_integer(id)` before handing it to `get_project!/1` (the store keys projects by integer id). Once lesson 29 puts `Repo.get!` behind the context, it accepts the string id directly and that conversion becomes optional. And `to_form/2` is still called fully qualified as `Phoenix.Component.to_form/2` — it isn't imported in a controller.
 
 **Same API, swappable store.** Because the controller depends only on `Tracker.Projects`, the in-memory `ProjectStore` is now an implementation detail behind the boundary. In lesson 29 the store is replaced by Postgres (an Ecto schema + `Repo`), and `Tracker.Projects` keeps the exact same function names and return shapes — so the web layer doesn't change at all. That's the whole point of the boundary.
 
@@ -88,7 +88,7 @@ Note `show/2`: the id arrives from the URL as a **string**, so it calls `String.
 ## Common mistakes
 
 - **Leaking `Ecto`/store calls back into the controller.** The point of the context is that `Ecto.Changeset.*` and `ProjectStore.*` calls live in `Tracker.Projects` *only*. If you find yourself typing `ProjectStore` or `Ecto.Changeset` in the controller, push it into the context.
-- **Forgetting `String.to_integer/1` in `show`.** The id in `~p"/projects/:id"` is a string; the store keys by integer. `get_project!("1")` won't find `%{id: 1}`. Parse it first. Note the two distinct failure modes: a non-numeric id like `/projects/abc` raises `ArgumentError` from `String.to_integer/1` *before* the context is reached, while a well-formed but missing id like `/projects/999` reaches `get_project!/1` and raises `RuntimeError`.
+- **Forgetting `String.to_integer/1` in `show`.** The id in `~p"/projects/:id"` is a string; the store keys by integer. `get_project!("1")` won't find `%{id: 1}`. Parse it first. Note the two distinct failure modes: a non-numeric id like `/projects/abc` raises `ArgumentError` from `String.to_integer/1` *before* the context is reached, while a well-formed but missing id like `/projects/999` reaches `get_project!/1` and raises `RuntimeError`. Both are facts about this lesson's `Agent` store — lesson 29's `Repo.get!` takes the string id and raises `Ecto.NoResultsError`.
 - **Returning the wrong shape from `create_project/1`.** It must be `{:ok, project}` or `{:error, changeset}` — the controller's `case` matches on exactly those. Also keep the `%{changeset | action: :insert}` so the re-rendered form actually shows its errors.
 
 ## Links

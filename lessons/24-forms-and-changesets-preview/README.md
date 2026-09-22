@@ -1,6 +1,6 @@
 # Lesson 24: Forms and Changesets (preview)
 
-In lesson 23 the Projects index rendered a hard-coded list. Now you'll make it **real**: a `New project` form that **creates** a project, and an index that reads what you've created. There's still no database — projects live in an in-memory **`ProjectStore`** (an `Agent`, exactly like the ones from Phase 2), started by the app's supervision tree. Postgres arrives in lesson 26.
+In lesson 23 the Projects index rendered a hard-coded list. Now you'll make it **real**: a `New project` form that **creates** a project, and an index that reads what you've created. There's still no database — projects live in an in-memory **`ProjectStore`** (an `Agent`, exactly like the ones from Phase 2), started by the app's supervision tree. Postgres arrives in lesson 29.
 
 To validate the submitted form you'll use a **changeset** — but a *schemaless* one. No Ecto schema, no Repo. Just `Ecto.Changeset.cast/4` over a plain `{data, types}` tuple, which is enough to cast fields and require a name. This is your first taste of the form + changeset pattern that powers every Phoenix CRUD page.
 
@@ -66,7 +66,7 @@ end
 
 The first element (`%{status: "open"}`) is the **default data**; the second (`%{name: :string, status: :string}`) declares the **field types**. `cast/4` pulls the listed keys out of `attrs`, casts them to those types, and `validate_required/2` flags a blank name. `change()` with no args is an empty form; `change(params)` validates a submission. No schema, no Repo, no Postgres — and the exact same API you'll use with a real schema later.
 
-**The store is an `Agent`.** `Tracker.ProjectStore` keeps a list of projects in process state and is started in `lib/tracker/application.ex`, right alongside the PubSub and Endpoint — a direct callback to the OTP work in Phase 2. `add/1` appends with an auto-incrementing id; `list/0` returns them. Because it's process state, **everything is lost on restart** — that's exactly the gap Postgres fills in lesson 26.
+**The store is an `Agent`.** `Tracker.ProjectStore` keeps a list of projects in process state and is started in `lib/tracker/application.ex`, right alongside the PubSub and Endpoint — a direct callback to the OTP work in Phase 2. `add/1` appends with an auto-incrementing id; `list/0` returns them. Because it's process state, **everything is lost on restart** — that's exactly the gap Postgres fills in lesson 29.
 
 ## How to work this lesson
 
@@ -91,7 +91,7 @@ Visit `http://localhost:4000/projects`, click **New project**, and submit. With 
 
 - **Forgetting `as: :project`.** Without it, `to_form/2` names the inputs differently and the params arrive under the wrong key — your `%{"project" => params}` match in `create/2` never fires (you get a function-clause/`MatchError`). The `as:` in the controller and the `"project"` in the match must agree.
 - **Not setting `changeset.action`.** A changeset only renders its errors once it has an action. If you re-render with the raw changeset, the form comes back looking valid (no error next to the blank name). Set `%{changeset | action: :insert}` (or use `apply_action/2`) on the invalid branch.
-- **Expecting data to survive a restart.** The `ProjectStore` is an in-memory `Agent`. Restart the server and the list resets. That's by design here — persistence is lesson 26's job.
+- **Expecting data to survive a restart.** The `ProjectStore` is an in-memory `Agent`. Restart the server and the list resets. That's by design here — persistence is lesson 29's job.
 
 ## Links
 
