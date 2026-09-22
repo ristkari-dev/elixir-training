@@ -1,0 +1,5 @@
+<Layouts.app flash={@flash}>
+  <.header>{@project.name}</.header>
+  <p>Status: {@project.status}</p>
+  <.button navigate={~p"/projects/#{@project.id}/board"}>Open board</.button>
+</Layouts.app>
