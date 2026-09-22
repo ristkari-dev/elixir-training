@@ -11,7 +11,7 @@ end; they're the worked example for both drills.
 ### Hint 1
 
 Generate the file with `mix ecto.gen.migration create_issues`, then fill in
-`change/0`. Inside it you need `create table(:issues)` with four `add` calls, a
+`change/0`. Inside it you need `create table(:issues)` with three `add` calls, a
 `timestamps` line, and a `create index(...)` after the table. The foreign key
 comes from `references/2`. `priv/repo/migrations/*_create_projects.exs` is the
 same shape one table over.
