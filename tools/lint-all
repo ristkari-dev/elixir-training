@@ -35,6 +35,38 @@ for dir in lessons/*/exercises lessons/*/solutions; do
   RAN=$((RAN + 1))
 done
 
+# Paren-free DSL gate. The Phoenix/Ecto DSL is written without parentheses
+# (`field :name, :string`), matching the Ecto docs and what lessons 29+ teach.
+# `mix format` cannot enforce this: locals_without_parens stops it ADDING
+# parens, it never removes them, so both spellings are format-stable.
+#
+# Scope is deliberately narrow. Earlier lessons still carry hundreds of
+# parenthesized DSL lines, and lesson 21's project imports no Ecto/Phoenix
+# formatter deps, so `mix format` there ADDS the parens this would forbid —
+# unsatisfiable alongside the format check above. Widen the glob as each
+# earlier lesson is normalized.
+#
+# `from` is excluded on purpose: `from(i in Issue, ...)` is expression
+# position and correct with parens. test/ is excluded because `get(conn, ...)`,
+# `post(conn, ...)` and `live(conn, ...)` are ordinary function calls there.
+DSL_TOKENS='plug|socket|field|add|timestamps|execute|attr|slot|pipe_through|resources|create|embeds_one|embeds_many|belongs_to|has_many|has_one|many_to_many'
+PAREN_FAIL=0
+for dir in lessons/29-*/exercises lessons/29-*/solutions \
+           lessons/30-*/exercises lessons/30-*/solutions; do
+  [[ -d "$dir" ]] || continue
+  for sub in lib priv/repo/migrations; do
+    [[ -d "$dir/$sub" ]] || continue
+    if grep -rnE "^[[:space:]]*(${DSL_TOKENS})\(" "$dir/$sub"; then
+      PAREN_FAIL=1
+    fi
+  done
+done
+
+if (( PAREN_FAIL == 1 )); then
+  echo 'FAILED paren-free DSL check: write `field :name, :string`, not `field(:name, :string)`' >&2
+  FAIL=1
+fi
+
 if (( RAN == 0 )); then
   echo "No Mix projects found under lessons/."
 fi
