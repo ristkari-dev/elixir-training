@@ -21,12 +21,27 @@ Every lesson has exactly these parts:
    (gentle → specific → close-to-the-answer). Students read them one at
    a time when stuck.
 3. **`slides/`** — the live-lecture deck. `index.html` is the reveal.js
-   bootstrap; `slides.md` is the markdown content. Use `Note:` blocks
-   for speaker notes.
+   bootstrap; `slides.md` is the markdown content.
 4. **`exercises/`** — starter Mix project that **compiles** but is
-   incomplete. Stub function bodies with `raise "TODO: implement this"`
-   or `raise "not implemented"`. The accompanying `test/*_test.exs`
-   files contain failing tests that act as the spec.
+   incomplete. The accompanying `test/*_test.exs` files contain failing
+   tests that act as the spec.
+
+   How to stub depends on the lesson:
+
+   - **Lessons 1-20 (plain Mix projects):** `raise "TODO: implement this"`
+     is fine — nothing else in the project consumes the result.
+   - **Lessons 21+ (Phoenix, Elixir 1.19's type checker):** stub with a
+     correctly-typed placeholder value and a `# TODO:` comment, never a
+     bare `raise`. When provided code consumes a stubbed function, a
+     `raise`-only body infers `none()` and the consumer's clauses fail
+     `--warnings-as-errors` with "the following clause will never match".
+     A stub that must satisfy a `case` on `{:ok, _} | {:error, _}` has to
+     return both shapes. Stubs must also avoid unused aliases, imports and
+     variables, and must not reference a module the drill creates.
+
+   A stub that returns a plausible value can make a drill test pass while
+   the drill is undone. Drill tests should assert on something the stub
+   cannot fake — a row read back from the database, or the schema itself.
 5. **`solutions/`** — the same Mix project shape as `exercises/`, fully
    implemented. The tests in `solutions/test/` must be the same tests as
    in `exercises/test/` so `mix test --include pending` passes in
