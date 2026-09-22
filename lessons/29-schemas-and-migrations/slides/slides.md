@@ -11,19 +11,19 @@ The database side. Generated, filled in by hand, run once.
 
 --
 
-### `mix ecto.gen.migration create_issues`
+### `mix ecto.gen.migration create_projects`
 
 ```elixir
 def change do
-  create table(:issues) do
-    add :title, :string, null: false
+  create table(:projects) do
+    add :name, :string, null: false
     add :status, :string, null: false, default: "open"
-    add :project_id, references(:projects, on_delete: :delete_all), null: false
+    add :user_id, references(:users, on_delete: :delete_all), null: false
 
     timestamps type: :utc_datetime
   end
 
-  create index(:issues, [:project_id])
+  create index(:projects, [:user_id])
 end
 ```
 
@@ -38,23 +38,23 @@ The Elixir side. A struct that names a table. Creates nothing.
 
 --
 
-### `lib/tracker/issues/issue.ex`
+### `lib/tracker/projects/project.ex`
 
 ```elixir
-defmodule Tracker.Issues.Issue do
+defmodule Tracker.Projects.Project do
   use Ecto.Schema
 
-  schema "issues" do
-    field :title, :string
+  schema "projects" do
+    field :name, :string
     field :status, :string, default: "open"
-    field :project_id, :id
+    field :user_id, :id
 
     timestamps type: :utc_datetime
   end
 end
 ```
 
-`%Issue{}` is an ordinary struct — lesson 10's kind. Ecto adds `:id` for you.
+`%Project{}` is an ordinary struct — lesson 10's kind. Ecto adds `:id` for you.
 `default: "open"` is the Elixir-side twin of the migration's `default: "open"`.
 
 ---
