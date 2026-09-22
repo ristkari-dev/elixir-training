@@ -221,6 +221,9 @@ if changeset.valid? do    # lessons 24, 25, 29
 So Postgres only ever sees changesets that already passed every validation, and
 a validation error and a constraint error can never arrive together.
 
+And a changeset that passed every validation can still return
+`{:error, changeset}` — `"has already been taken"` arrives only from Postgres.
+
 Branch on `{:ok, _} | {:error, _}`, not on `valid?`.
 
 --
