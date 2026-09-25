@@ -70,7 +70,7 @@ defmodule BuildIndex do
     # Phase 4 — Ecto deep dive
     {"29", "schemas-and-migrations", "Schemas & migrations", "schema · field · migrate", 4},
     {"30", "changesets-deep", "Changesets deep dive", "cast · validations · constraints", 4},
-    {"31", "queries", "Queries", "joins · preloads · dynamic", 4},
+    {"31", "queries", "Queries", "joins · composition · dynamic", 4},
     {"32", "associations", "Associations", "has_many · belongs_to · m:n", 4},
     {"33", "multi-and-transactions", "Multi & transactions", "Ecto.Multi · rollback", 4},
 
