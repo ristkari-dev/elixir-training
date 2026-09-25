@@ -268,7 +268,7 @@ Loud, but one layer from where you'd look.
 
 ### Next: lesson 31 — queries
 
-Joins, preloads, composition — the DSL you've been copying one line of.
+Joins, `select` shapes, composition — the DSL you've been copying one line of.
 
 ```
 make slides-dev LESSON=31-queries

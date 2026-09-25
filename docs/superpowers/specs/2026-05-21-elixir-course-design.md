@@ -89,15 +89,15 @@ The threaded example app (`Tracker`, a small issue tracker) begins here.
 |---|---|---|
 | 29 | `schemas-and-migrations` | `schema`, `field`, types, migrations, indexes; migrates `Tracker`'s domain (projects, issues) from in-memory to Postgres (the users table was introduced in lesson 26 with `phx.gen.auth`) |
 | 30 | `changesets-deep` | `cast`, validations, constraints, custom validations |
-| 31 | `queries` | Query DSL, joins, preloads, dynamic queries |
-| 32 | `associations` | `has_many`, `belongs_to`, `many_to_many`, preload strategies |
+| 31 | `queries` | Query DSL, joins, `select` shapes, composition, dynamic queries |
+| 32 | `associations` | `has_many`, `belongs_to`, `many_to_many`, preload strategies (including the `preload` lesson 31 defers here) |
 | 33 | `multi-and-transactions` | `Ecto.Multi`, transactions, rollback patterns |
 
 ### Phase 5 — Production (lessons 34–38)
 
 | # | Slug | Focus |
 |---|---|---|
-| 34 | `testing` | ExUnit deep dive; `DataCase`/`ConnCase`/`LiveViewTest`; fixtures vs factories |
+| 34 | `testing` | ExUnit deep dive; `DataCase`/`ConnCase`/`LiveViewTest`; fixtures vs factories; the generators (`phx.gen.html`, `phx.gen.context`, `phx.gen.live`) run against the app built by hand |
 | 35 | `observability` | `Logger`, `:telemetry`, LiveDashboard, structured logs |
 | 36 | `background-jobs` | Oban: workers, queues, scheduling, retries |
 | 37 | `releases-and-docker` | `mix release`, runtime config, Dockerfile, Postgres via docker-compose |
@@ -176,8 +176,8 @@ jobs — without bolting features on artificially.
 | 28 | Multi-tab live updates via PubSub; live comments |
 | 29 | Migrate projects/issues from in-memory to Postgres; deeper schemas + migrations |
 | 30 | Validations, unique constraints, custom changeset functions |
-| 31 | "My open issues across projects" — joins, preloads, dynamic queries |
-| 32 | Issue ↔ Project, Issue ↔ Comment, Issue ↔ Assignees associations |
+| 31 | "My open issues across projects" — joins, `select` shapes, composition; scoped reads close two authorization gaps |
+| 32 | Issue ↔ Project, Project ↔ User, Issue ↔ Comment, Issue ↔ Assignees associations |
 | 33 | Atomic "move issue between projects" via `Ecto.Multi` |
 | 34 | Full test suite for `Tracker` |
 | 35 | Telemetry + LiveDashboard for `Tracker` |
@@ -388,7 +388,10 @@ in the Phase 6 capstone. We do **not** introduce a browser-driver dependency
 
 - **Beginners-first, generators-aware.** Phoenix generators (`phx.gen.html`,
   `phx.gen.context`, `phx.gen.live`, `phx.gen.auth`) are taught explicitly —
-  beginners learn the generators *and* what they generate.
+  beginners learn the generators *and* what they generate. `phx.gen.auth` runs in
+  lesson 26; lesson 29 compares `phx.gen.schema`'s output against the schema the
+  learner wrote by hand; the remaining three are lesson 34's, run against the app
+  built by hand so the comparison is concrete.
 - **Bottom-up Phoenix.** Plug first (the conn pipeline), then controllers +
   HEEx, then LiveView. Learners understand the whole stack before reaching
   the modern default.
